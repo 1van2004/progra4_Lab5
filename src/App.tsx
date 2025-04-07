@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 
 interface Todo {
   description: string
+  completed: boolean
+  completedAt: Date | null
 }
 
 const loadFromLocalStorage = (): Todo[] => {
@@ -25,7 +27,7 @@ function App() {
     setTodoList(storedTodos)
   }, [])
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTodoDescription(e.target.value)
   }
 
@@ -41,13 +43,17 @@ function App() {
       setEditingIndex(null)
     } else {
       
-      const newTodo: Todo = { description: todoDescription }
+      const newTodo: Todo = {
+       description: todoDescription,
+       completed: false,
+       completedAt: null,
+  }
       const updatedList = [newTodo, ...todoList]
       setTodoList(updatedList)
       saveToLocalStorage(updatedList)
     }
 
-    setTodoDescription('')
+    //setTodoDescription('')
   }
 
   const handleDelete = (index: number) => {
@@ -61,8 +67,33 @@ function App() {
     setEditingIndex(index)
   }
 
+
+  const handleCheckboxChange = (index: number) => {
+    const updatedList = [...todoList]
+    const todo = updatedList[index]
+
+    todo.completed = !todo.completed
+    todo.completedAt = todo.completed ? new Date() : null
+
+    updatedList.sort((a, b) => Number(a.completed) - Number(b.completed))
+    setTodoList(updatedList)
+    saveToLocalStorage(updatedList)
+  }
+
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleString('es-CR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
+  }
+
   return (
-    <div style={{ border: '1px solid red', padding: 10 }}>
+<div style={{ border: '1px solid red', padding: 10 }}>
       <div>
         <input
           type='text'
@@ -75,18 +106,53 @@ function App() {
         </button>
       </div>
 
-      <div style={{ marginTop: 10 }}>TODOs Here:</div>
-      <ul>
+      <div style={{ 
+        marginTop: 20,
+        fontWeight: 'bold',
+        display: 'flex',
+        justifyContent: 'space-between'
+      }}>
+        <span style={{ width: '40%' }}>TODOs</span>
+        <span style={{ width: '30%' }}>Completed Date</span>
+        <span style={{ width: '30%' }}>Options</span>
+      </div>
+
+      <ul style={{ listStyle: 'none', padding: 0 }}>
         {todoList.map((todo, index) => (
-          <li key={index} style={{ marginBottom: 5 }}>
-            <input type='checkbox' style={{ marginRight: 5 }} />
-            {todo.description}
-            <button onClick={() => handleEdit(index)} style={{ marginLeft: 10 }}>
-              Edit
-            </button>
-            <button onClick={() => handleDelete(index)} style={{ marginLeft: 5 }}>
-              Delete
-            </button>
+          <li 
+            key={index} 
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 0',
+            }}
+          >
+            {/* Columna: TODO */}
+            <div style={{ width: '40%', color: todo.completed ? 'red' : 'gray' }}>
+              <input 
+                type='checkbox' 
+                checked={todo.completed}
+                onChange={() => handleCheckboxChange(index)}
+                style={{ marginRight: 5 }}
+              />
+              {todo.description}
+            </div>
+
+            {/* Columna: Fecha */}
+            <div style={{ width: '30%', fontSize: '0.8rem', color: 'gray',  marginRight: '5%', marginLeft: '5%' }}>
+              {todo.completedAt ? formatDate(todo.completedAt) : 'Not completed'}
+            </div>
+
+            {/* Columna: Botones */}
+            <div style={{ width: '30%'}}>
+              <button onClick={() => handleEdit(index)} style={{ marginRight: 5 }}>
+                Edit
+              </button>
+              <button onClick={() => handleDelete(index)} style={{ marginRight: 5 }}>
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
