@@ -53,7 +53,7 @@ function App() {
       saveToLocalStorage(updatedList)
     }
 
-    //setTodoDescription('')
+    setTodoDescription('')
   }
 
   const handleDelete = (index: number) => {
