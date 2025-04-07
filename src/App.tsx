@@ -17,8 +17,9 @@ const saveToLocalStorage = (todos: Todo[]) => {
 function App() {
   const [todoDescription, setTodoDescription] = useState('')
   const [todoList, setTodoList] = useState<Todo[]>([])
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
 
-  // Cargar datos al iniciar
+ 
   useEffect(() => {
     const storedTodos = loadFromLocalStorage()
     setTodoList(storedTodos)
@@ -31,11 +32,33 @@ function App() {
   const handleClick = () => {
     if (todoDescription.trim() === '') return
 
-    const newTodo: Todo = { description: todoDescription }
-    const updatedList = [newTodo, ...todoList]
+    if (editingIndex !== null) {
+      
+      const updatedList = [...todoList]
+      updatedList[editingIndex].description = todoDescription
+      setTodoList(updatedList)
+      saveToLocalStorage(updatedList)
+      setEditingIndex(null)
+    } else {
+      
+      const newTodo: Todo = { description: todoDescription }
+      const updatedList = [newTodo, ...todoList]
+      setTodoList(updatedList)
+      saveToLocalStorage(updatedList)
+    }
+
+    setTodoDescription('')
+  }
+
+  const handleDelete = (index: number) => {
+    const updatedList = todoList.filter((_, i) => i !== index)
     setTodoList(updatedList)
     saveToLocalStorage(updatedList)
-    setTodoDescription('')
+  }
+
+  const handleEdit = (index: number) => {
+    setTodoDescription(todoList[index].description)
+    setEditingIndex(index)
   }
 
   return (
@@ -47,15 +70,23 @@ function App() {
           onChange={handleChange}
           style={{ marginRight: 10 }}
         />
-        <button onClick={handleClick}>Add Item</button>
+        <button onClick={handleClick}>
+          {editingIndex !== null ? 'Update Item' : 'Add Item'}
+        </button>
       </div>
 
-      <div>TODOs Here:</div>
+      <div style={{ marginTop: 10 }}>TODOs Here:</div>
       <ul>
         {todoList.map((todo, index) => (
-          <li key={index}>
-            <input type='checkbox' />
+          <li key={index} style={{ marginBottom: 5 }}>
+            <input type='checkbox' style={{ marginRight: 5 }} />
             {todo.description}
+            <button onClick={() => handleEdit(index)} style={{ marginLeft: 10 }}>
+              Edit
+            </button>
+            <button onClick={() => handleDelete(index)} style={{ marginLeft: 5 }}>
+              Delete
+            </button>
           </li>
         ))}
       </ul>
@@ -64,4 +95,3 @@ function App() {
 }
 
 export default App
-
