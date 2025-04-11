@@ -9,7 +9,14 @@ interface Todo {
 
 const loadFromLocalStorage = (): Todo[] => {
   const data = localStorage.getItem('todos')
-  return data ? JSON.parse(data) : []
+  if (!data) return []
+
+  const parsed = JSON.parse(data)
+
+  return parsed.map((todo: any) => ({
+    ...todo,
+    completedAt: todo.completedAt ? new Date(todo.completedAt) : null
+  }))
 }
 
 const saveToLocalStorage = (todos: Todo[]) => {
